@@ -1,0 +1,14 @@
+blib/*
+inc/*
+log/*
+.build/*
+Makefile
+MYMETA*
+.tidyall.d/
+.vscode/*
+.vstags
+.jenkins
+dcrtime_dumpdb
+merkle.txt
+data/*
+!data/.keep
