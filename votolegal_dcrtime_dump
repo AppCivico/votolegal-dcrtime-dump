@@ -1,12 +1,17 @@
 #!/usr/bin/env perl
 use Mojolicious::Lite;
 use FindBin qw($RealBin);
-
 use EV;
 use AnyEvent;
 use AnyEvent::Filesys::Notify;
 use File::Copy::Recursive qw(dircopy);
 use IPC::Run 'run';
+
+BEGIN {
+    die "Env VOTOLEGAL_DCRTIME_DATA is not a dir.\n"        unless -d $ENV{VOTOLEGAL_DCRTIME_DATA};
+    die "Env VOTOLEGAL_DCRTIME_DUMPDB is not executable.\n" unless -x $ENV{VOTOLEGAL_DCRTIME_DUMPDB};
+    die "Directory $RealBin/data does not exists.\n"        unless -d "$RealBin/data";
+};
 
 my $lock = 0;
 helper wait_for_lock => sub {
@@ -23,8 +28,8 @@ helper wait_for_lock => sub {
 update_db();
 
 AnyEvent::Filesys::Notify->new(
-    dirs     => [ '/home/junior/.dcrtimed/data' ],
-    interval => 1.0,
+    dirs     => [ $ENV{VOTOLEGAL_DCRTIME_DATA} ],
+    interval => 60 * 30, # 30 minutes.
     cb       => sub { update_db() },
 );
 
@@ -36,15 +41,14 @@ get '/dump' => sub {
     return $c->reply->file("$RealBin/merkle.txt");
 };
 
-
-
 sub update_db {
     return if $lock == 1;
 
     app->log->info("Updating merkle tree...");
+
     $lock = 1;
 
-    dircopy("/home/app/.dcrtimed/data", "$RealBin/data") or Mojo::Exception->throw($!);
+    dircopy($ENV{VOTOLEGAL_DCRTIME_DATA}, "$RealBin/data") or Mojo::Exception->throw($!);
 
     run [ "$RealBin/dcrtime_dumpdb", '-d', "$RealBin/data/mainnet" ], '>',  'merkle.txt';
 
