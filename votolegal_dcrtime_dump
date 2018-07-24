@@ -1,0 +1,72 @@
+#!/usr/bin/env perl
+use Mojolicious::Lite;
+use FindBin qw($RealBin);
+
+use EV;
+use AnyEvent;
+use AnyEvent::Filesys::Notify;
+use File::Copy::Recursive qw(dircopy);
+use IPC::Run 'run';
+
+my $lock = 0;
+helper wait_for_lock => sub {
+    my $c = shift;
+
+    $c->render_later;
+
+    my $w;
+    $w = AE::timer 0.25, 0, sub {
+        undef $w if $lock == 0;
+    };
+};
+
+update_db();
+
+AnyEvent::Filesys::Notify->new(
+    dirs     => [ '/home/junior/.dcrtimed/data' ],
+    interval => 1.0,
+    cb       => sub { update_db() },
+);
+
+get '/dump' => sub {
+    my $c = shift;
+
+    $c->wait_for_lock();
+
+    return $c->reply->file("$RealBin/merkle.txt");
+};
+
+
+
+sub update_db {
+    return if $lock == 1;
+
+    app->log->info("Updating merkle tree...");
+    $lock = 1;
+
+    dircopy("/home/app/.dcrtimed/data", "$RealBin/data") or Mojo::Exception->throw($!);
+
+    run [ "$RealBin/dcrtime_dumpdb", '-d', "$RealBin/data/mainnet" ], '>',  'merkle.txt';
+
+    app->log->info("Merkle tree updated!");
+
+    $lock = 0;
+};
+
+app->start;
+
+__DATA__
+@@ not_found.html.ep
+<!DOCTYPE html>
+<html>
+  <head><title>Page not found</title></head>
+  <body>Page not found</body>
+</html>
+
+@@ exception.html.ep
+<!DOCTYPE html>
+<html>
+  <head><title>Internal server error</title></head>
+  <body>Internal server error</body>
+</html>
+
