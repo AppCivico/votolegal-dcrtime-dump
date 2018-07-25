@@ -9,6 +9,6 @@ MYMETA*
 .vstags
 .jenkins
 dcrtime_dumpdb
-merkle.txt
+dumpdb.txt
 data/*
 !data/.keep
