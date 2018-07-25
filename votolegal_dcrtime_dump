@@ -14,6 +14,8 @@ BEGIN {
 };
 
 my $lock = 0;
+update_db();
+
 helper wait_for_lock => sub {
     my $c = shift;
 
@@ -25,20 +27,18 @@ helper wait_for_lock => sub {
     };
 };
 
-update_db();
-
 AnyEvent::Filesys::Notify->new(
     dirs     => [ $ENV{VOTOLEGAL_DCRTIME_DATA} ],
     interval => 60 * 30, # 30 minutes.
     cb       => sub { update_db() },
 );
 
-get '/dump' => sub {
+get '/dumpdb' => sub {
     my $c = shift;
 
     $c->wait_for_lock();
 
-    return $c->reply->file("$RealBin/merkle.txt");
+    return $c->reply->file("$RealBin/dumpdb.txt");
 };
 
 sub update_db {
@@ -46,11 +46,16 @@ sub update_db {
 
     app->log->info("Updating merkle tree...");
 
+    if (-e "$RealBin/dumpdb.txt") {
+        app->log->debug("Delete $RealBin/dumpdb.txt");
+        unlink "$RealBin/dumpdb.txt" or die $!;
+    }
+
     $lock = 1;
 
     dircopy($ENV{VOTOLEGAL_DCRTIME_DATA}, "$RealBin/data") or Mojo::Exception->throw($!);
 
-    run [ "$RealBin/dcrtime_dumpdb", '-d', "$RealBin/data/mainnet" ], '>',  'merkle.txt';
+    run [ "$RealBin/dcrtime_dumpdb", '-d', "$RealBin/data/mainnet" ], '>',  'dumpdb.txt';
 
     app->log->info("Merkle tree updated!");
 
@@ -61,16 +66,18 @@ app->start;
 
 __DATA__
 @@ not_found.html.ep
-<!DOCTYPE html>
-<html>
-  <head><title>Page not found</title></head>
-  <body>Page not found</body>
-</html>
+% layout 'default';
+% title 'Page not found'
+% content 'Page not found'
 
 @@ exception.html.ep
+% layout 'default'
+% title 'Internal server error'
+% content 'Interval server error'
+
+@@ layouts/default.html.ep
 <!DOCTYPE html>
 <html>
-  <head><title>Internal server error</title></head>
-  <body>Internal server error</body>
+  <head><title><%= title %></title></head>
+  <body><%= content %></body>
 </html>
-
