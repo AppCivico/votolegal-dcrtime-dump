@@ -29,7 +29,7 @@ helper wait_for_lock => sub {
 
 AnyEvent::Filesys::Notify->new(
     dirs     => [ $ENV{VOTOLEGAL_DCRTIME_DATA} ],
-    interval => 60 * 30, # 30 minutes.
+    interval => 60 * 60, # 60 minutes.
     cb       => sub { update_db() },
 );
 
@@ -51,11 +51,12 @@ sub update_db {
         unlink "$RealBin/dumpdb.txt" or die $!;
     }
 
+    app->log->debug("Updating merkle tree...");
     $lock = 1;
 
-    dircopy($ENV{VOTOLEGAL_DCRTIME_DATA}, "$RealBin/data") or Mojo::Exception->throw($!);
+    run ['rsync', '-avr', $ENV{VOTOLEGAL_DCRTIME_DATA} . '/', "$RealBin/data"];
 
-    run [ "$RealBin/dcrtime_dumpdb", '-d', "$RealBin/data/mainnet" ], '>',  "$RealBin/dumpdb.txt";
+    run [ $ENV{VOTOLEGAL_DCRTIME_DUMPDB}, '-d', "$RealBin/data/mainnet" ], '>',  "$RealBin/dumpdb.txt";
 
     app->log->info("Merkle tree updated!");
 
