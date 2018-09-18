@@ -55,7 +55,7 @@ sub update_db {
 
     dircopy($ENV{VOTOLEGAL_DCRTIME_DATA}, "$RealBin/data") or Mojo::Exception->throw($!);
 
-    run [ "$RealBin/dcrtime_dumpdb", '-d', "$RealBin/data/mainnet" ], '>',  'dumpdb.txt';
+    run [ "$RealBin/dcrtime_dumpdb", '-d', "$RealBin/data/mainnet" ], '>',  "$RealBin/dumpdb.txt";
 
     app->log->info("Merkle tree updated!");
 
@@ -73,7 +73,7 @@ Page not found
 @@ exception.html.ep
 % layout 'default';
 % title 'Internal server error';
-Interval server error
+Internal server error
 
 @@ layouts/default.html.ep
 <!DOCTYPE html>
