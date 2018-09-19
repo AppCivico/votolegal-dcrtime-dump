@@ -20,6 +20,7 @@ my %WriteMakefileArgs = (
     "AnyEvent" => 0,
     "AnyEvent::Filesys::Notify" => 0,
     "EV" => 0,
+    "File::Copy::Recursive" => 0,
     "IPC::Run" => 0,
     "Mojolicious" => 0
   },
@@ -43,6 +44,7 @@ my %FallbackPrereqs = (
   "AnyEvent" => 0,
   "AnyEvent::Filesys::Notify" => 0,
   "EV" => 0,
+  "File::Copy::Recursive" => 0,
   "File::Spec" => 0,
   "IO::Handle" => 0,
   "IPC::Open3" => 0,
