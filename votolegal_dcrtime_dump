@@ -57,8 +57,10 @@ sub update_db {
     app->log->debug("Updating merkle tree...");
     $lock = 1;
 
+    app->log->debug("Copying data...");
     run ['rsync', '-ar', $ENV{VOTOLEGAL_DCRTIME_DATA} . '/', "$RealBin/data"];
 
+    app->log->debug("Running dcrtime_dumpdb...");
     run [ $ENV{VOTOLEGAL_DCRTIME_DUMPDB}, '-d', "$RealBin/data/mainnet" ], '>',  "$RealBin/dumpdb.txt";
 
     app->log->info("Merkle tree updated!");
