@@ -1,7 +1,8 @@
 #!/usr/bin/env perl
-use Mojolicious::Lite;
+use strict;
+use warnings;
 use FindBin qw($RealBin);
-use EV;
+use Mojolicious::Lite;
 use AnyEvent;
 use AnyEvent::Filesys::Notify;
 use File::Copy::Recursive qw(dircopy);
@@ -54,7 +55,7 @@ sub update_db {
     app->log->debug("Updating merkle tree...");
     $lock = 1;
 
-    run ['rsync', '-avr', $ENV{VOTOLEGAL_DCRTIME_DATA} . '/', "$RealBin/data"];
+    run ['rsync', '-ar', $ENV{VOTOLEGAL_DCRTIME_DATA} . '/', "$RealBin/data"];
 
     run [ $ENV{VOTOLEGAL_DCRTIME_DUMPDB}, '-d', "$RealBin/data/mainnet" ], '>',  "$RealBin/dumpdb.txt";
 
