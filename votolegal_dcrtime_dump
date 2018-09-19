@@ -14,6 +14,8 @@ BEGIN {
     die "Directory $RealBin/data does not exists.\n"        unless -d "$RealBin/data";
 };
 
+plugin 'Config';
+
 my $lock = 0;
 update_db();
 
