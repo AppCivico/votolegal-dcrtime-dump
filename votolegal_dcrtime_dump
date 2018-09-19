@@ -37,7 +37,7 @@ get '/dumpdb' => sub {
 
     $c->wait_for_lock();
 
-    return $c->render_file("$RealBin/dumpdb.txt");
+    return $c->render_file(filepath => "$RealBin/dumpdb.txt");
 };
 
 sub update_db {
