@@ -4,7 +4,6 @@ use warnings;
 use FindBin qw($RealBin);
 use Mojolicious::Lite;
 use AnyEvent;
-use AnyEvent::Filesys::Notify;
 use File::Copy::Recursive qw(dircopy);
 use IPC::Run 'run';
 
@@ -15,9 +14,12 @@ BEGIN {
 };
 
 plugin 'Config';
+plugin 'RenderFile';
 
 my $lock = 0;
 update_db();
+
+Mojo::IOLoop->recurring(3600 => sub { updated_db() });
 
 helper wait_for_lock => sub {
     my $c = shift;
@@ -30,18 +32,12 @@ helper wait_for_lock => sub {
     };
 };
 
-AnyEvent::Filesys::Notify->new(
-    dirs     => [ $ENV{VOTOLEGAL_DCRTIME_DATA} ],
-    interval => 60 * 60, # 60 minutes.
-    cb       => sub { update_db() },
-);
-
 get '/dumpdb' => sub {
     my $c = shift;
 
     $c->wait_for_lock();
 
-    return $c->reply->file("$RealBin/dumpdb.txt");
+    return $c->render_file("$RealBin/dumpdb.txt");
 };
 
 sub update_db {
