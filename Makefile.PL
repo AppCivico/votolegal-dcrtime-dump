@@ -2,7 +2,7 @@
 use strict;
 use warnings;
 
-use 5.020;
+use 5.022;
 
 use ExtUtils::MakeMaker;
 
@@ -14,7 +14,7 @@ my %WriteMakefileArgs = (
   },
   "DISTNAME" => "VotoLegal_Dcrtime_Dump",
   "LICENSE" => "open_source",
-  "MIN_PERL_VERSION" => "5.020",
+  "MIN_PERL_VERSION" => "5.022",
   "NAME" => "VotoLegal_Dcrtime_Dump",
   "PREREQ_PM" => {},
   "TEST_REQUIRES" => {
