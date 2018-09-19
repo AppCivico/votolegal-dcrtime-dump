@@ -24,11 +24,11 @@ Mojo::IOLoop->recurring(3600 => sub { updated_db() });
 helper wait_for_lock => sub {
     my $c = shift;
 
-    return if $lock == 0;
+    return if $lock == 0 && defined $dumpfile;
     my $w;
     $w = Mojo::IOLoop->recurring(0.25 => sub {
         my $loop = shift;
-        $loop->remove($w) if $lock == 0;
+        $loop->remove($w) if $lock == 0 && defined $dumpfile;
     });
 };
 
@@ -49,7 +49,7 @@ sub update_db {
     close $fh;
 
     app->log->debug("Copying data...");
-    run ['rsync', '-avr', $ENV{VOTOLEGAL_DCRTIME_DATA} . '/', "$RealBin/data"];
+    run ['rsync', '-avrz', $ENV{VOTOLEGAL_DCRTIME_DATA} . '/', "$RealBin/data"];
 
     app->log->debug("Running dcrtime_dumpdb...");
     run [ $ENV{VOTOLEGAL_DCRTIME_DUMPDB}, '-d', "$RealBin/data/mainnet" ], '>',  $fh->filename;
