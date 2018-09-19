@@ -58,7 +58,7 @@ sub update_db {
     $lock = 1;
 
     app->log->debug("Copying data...");
-    run ['rsync', '-ar', $ENV{VOTOLEGAL_DCRTIME_DATA} . '/', "$RealBin/data"];
+    run ['rsync', '-avr', $ENV{VOTOLEGAL_DCRTIME_DATA} . '/', "$RealBin/data"];
 
     app->log->debug("Running dcrtime_dumpdb...");
     run [ $ENV{VOTOLEGAL_DCRTIME_DUMPDB}, '-d', "$RealBin/data/mainnet" ], '>',  "$RealBin/dumpdb.txt";
