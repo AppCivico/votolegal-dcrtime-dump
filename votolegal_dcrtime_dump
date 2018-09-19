@@ -3,7 +3,6 @@ use strict;
 use warnings;
 use FindBin qw($RealBin);
 use Mojolicious::Lite;
-use AnyEvent;
 use File::Copy::Recursive qw(dircopy);
 use IPC::Run 'run';
 
@@ -16,6 +15,7 @@ BEGIN {
 plugin 'Config';
 plugin 'RenderFile';
 
+our $dumpfile;
 my $lock = 0;
 update_db();
 
@@ -24,12 +24,12 @@ Mojo::IOLoop->recurring(3600 => sub { updated_db() });
 helper wait_for_lock => sub {
     my $c = shift;
 
-    $c->render_later;
-
+    return if $lock == 0;
     my $w;
-    $w = AE::timer 0.25, 0, sub {
-        undef $w if $lock == 0;
-    };
+    $w = Mojo::IOLoop->recurring(0.25 => sub {
+        my $loop = shift;
+        $loop->remove($w) if $lock == 0;
+    });
 };
 
 get '/dumpdb' => sub {
@@ -37,7 +37,7 @@ get '/dumpdb' => sub {
 
     $c->wait_for_lock();
 
-    return $c->render_file(filepath => "$RealBin/dumpdb.txt");
+    return $c->render_file(filepath => $dumpfile, filename => 'dumpdb.txt');
 };
 
 sub update_db {
@@ -45,23 +45,23 @@ sub update_db {
 
     app->log->info("Updating merkle tree...");
 
-    if (-e "$RealBin/dumpdb.txt") {
-        app->log->debug("Delete $RealBin/dumpdb.txt");
-        unlink "$RealBin/dumpdb.txt" or die $!;
-    }
-
-    app->log->debug("Updating merkle tree...");
-    $lock = 1;
+    my $fh = File::Temp->new(UNLINK => 0);
+    close $fh;
 
     app->log->debug("Copying data...");
     run ['rsync', '-avr', $ENV{VOTOLEGAL_DCRTIME_DATA} . '/', "$RealBin/data"];
 
     app->log->debug("Running dcrtime_dumpdb...");
-    run [ $ENV{VOTOLEGAL_DCRTIME_DUMPDB}, '-d', "$RealBin/data/mainnet" ], '>',  "$RealBin/dumpdb.txt";
+    run [ $ENV{VOTOLEGAL_DCRTIME_DUMPDB}, '-d', "$RealBin/data/mainnet" ], '>',  $fh->filename;
+
+    $lock = 1;
+    if (-e $dumpfile) {
+        unlink $dumpfile or die $!;
+    }
+    $dumpfile = $fh->filename;
+    $lock = 0;
 
     app->log->info("Merkle tree updated!");
-
-    $lock = 0;
 };
 
 app->start;
