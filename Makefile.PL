@@ -16,7 +16,13 @@ my %WriteMakefileArgs = (
   "LICENSE" => "open_source",
   "MIN_PERL_VERSION" => "5.022",
   "NAME" => "VotoLegal_Dcrtime_Dump",
-  "PREREQ_PM" => {},
+  "PREREQ_PM" => {
+    "AnyEvent" => 0,
+    "AnyEvent::Filesys::Notify" => 0,
+    "EV" => 0,
+    "IPC::Run" => 0,
+    "Mojolicious" => 0
+  },
   "TEST_REQUIRES" => {
     "File::Spec" => 0,
     "IO::Handle" => 0,
@@ -34,9 +40,14 @@ my %WriteMakefileArgs = (
 
 
 my %FallbackPrereqs = (
+  "AnyEvent" => 0,
+  "AnyEvent::Filesys::Notify" => 0,
+  "EV" => 0,
   "File::Spec" => 0,
   "IO::Handle" => 0,
   "IPC::Open3" => 0,
+  "IPC::Run" => 0,
+  "Mojolicious" => 0,
   "Test::More" => 0,
   "blib" => "1.01",
   "strict" => 0,
