@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use FindBin qw($RealBin);
 use Mojolicious::Lite;
-use File::Copy::Recursive qw(dircopy);
+use File::Temp;
 use IPC::Run 'run';
 
 BEGIN {
